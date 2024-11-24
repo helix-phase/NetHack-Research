@@ -2,7 +2,7 @@ NetHack-Research
 ==============================
 
 Analysis of success in human gameplay data to improve RL agents. 
-Development of hybrid neual-symbolic models 
+Development of hybrid neural-symbolic models 
 
 Project Organization
 ------------
