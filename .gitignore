@@ -57,7 +57,13 @@ docs/_build/
 target/
 
 # DotEnv configuration
-../.env
+.env
+
+# Ignore JetBrains IDE project files
+.idea/
+
+# Ignore .gitkeep files used for empty folders
+*.gitkeep
 
 # Database
 *.db
