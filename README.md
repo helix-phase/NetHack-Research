@@ -1,7 +1,8 @@
 NetHack-Research
 ==============================
 
-UOML Research
+Analysis of success in human gameplay data to improve RL agents. 
+Development of hybrid neual-symbolic models 
 
 Project Organization
 ------------
