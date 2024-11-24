@@ -8,13 +8,26 @@ from dotenv import find_dotenv, load_dotenv
 import nle.dataset as nld
 from nle.dataset import db
 
+"""
+Builds the NLD-NAO database from unzipped game data files and saves it to location.
+
+Parameters:
+- nld_nao_path (str): Path to the directory containing the unzipped NLD-NAO data files.
+- output_filepath (str): Path to save the generated SQLite database file.
+
+Returns:
+- None. The function performs operations in place and logs progress.
+
+Example Usage:
+$ python3 build_database.py /path/to/nld-nao /path/to/output/nld-nao.db
+"""
+
 
 @click.command()
 @click.argument('nld_nao_path', type=click.Path(exists=True))
 @click.argument('output_filepath', type=click.Path())
 def build_database(nld_nao_path, output_filepath):
-    # Build the NLD-NAO.db database from the unzipped files and saves it to /data/raw
-
+    # Logs progress and information using Python's logging module
     logger = logging.getLogger(__name__)
     logger.info('Starting Database Creation Process')
 
