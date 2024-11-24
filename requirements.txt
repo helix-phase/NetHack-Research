@@ -1,0 +1,18 @@
+# Local Package:
+# tells pip to install the local package in editable mode:
+-e .
+nle~=1.1.0
+setuptools~=75.2.0
+# External Requirements:
+# command line interface building:
+click
+# documentation generation:
+Sphinx
+# test coverage:
+coverage
+# awscli for remote tasks:
+awscli
+# linter for code quality:
+flake8
+# environment variable management:
+python-dotenv>=0.5.1
