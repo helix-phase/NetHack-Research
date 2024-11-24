@@ -57,10 +57,7 @@ docs/_build/
 target/
 
 # DotEnv configuration
-.env
-
-# Ignore JetBrains IDE project files
-.idea/
+*.env
 
 # Ignore .gitkeep files used for empty folders
 *.gitkeep
@@ -69,8 +66,9 @@ target/
 *.db
 *.rdb
 
-# Pycharm
-.idea
+
+# Ignore JetBrains IDE project files
+.idea/
 
 # VS Code
 .vscode/
