@@ -1,0 +1,37 @@
+{
+  "conduct_flags": {
+    "0x001": "foodless",
+    "0x002": "vegan",
+    "0x004": "vegetarian",
+    "0x008": "atheist",
+    "0x010": "weaponless",
+    "0x020": "pacifist",
+    "0x040": "illiterate",
+    "0x080": "polypileless",
+    "0x100": "polyselfless",
+    "0x200": "wishless",
+    "0x400": "artifact_wishless",
+    "0x800": "genocideless"
+  },
+  "achieve": {
+    "0x0001": "got_bell_of_opening",
+    "0x0002": "entered_gehennom",
+    "0x0004": "got_candelabrum",
+    "0x0008": "got_book_of_dead",
+    "0x0010": "performed_invocation",
+    "0x0020": "got_amulet_of_yendor",
+    "0x0040": "in_end_game",
+    "0x0080": "on_astral_plane",
+    "0x0100": "ascended",
+    "0x0200": "got_luckstone",
+    "0x0400": "finished_sokoban",
+    "0x0800": "killed_medusa",
+    "0x1000": "zen_conduct_intact",
+    "0x2000": "nudist_conduct_intact"
+  },
+  "flags": {
+    "0x1": "wizard_mode",
+    "0x2": "discover_mode",
+    "0x4": "never_loaded_bones_file"
+  }
+}
