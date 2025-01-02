@@ -10,6 +10,7 @@ import pandas as pd
 import nle.dataset as nld
 from nle.dataset import db
 
+
 """
 Builds the NLD-NAO database from unzipped game data files and saves it to location.
 
@@ -20,8 +21,6 @@ Parameters:
 Returns:
 - None. The function performs operations in place and logs progress.
 """
-
-
 @click.command()
 @click.argument('nld_nao_path', type=click.Path(exists=True))
 @click.argument('output_filepath', type=click.Path())
