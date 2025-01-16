@@ -1,0 +1,2542 @@
+diff --git a/.gitignore b/.gitignore
+index c0270dc..6114889 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -82,6 +82,9 @@ target/
+ # exclude data from source control by default
+ /data/
+ 
++# exclude katakomba from source control
++/katakomba/
++
+ # Mac OS-specific storage files
+ .DS_Store
+ 
+diff --git a/notebooks/1-15-2024_NLD-AA-BC.ipynb b/notebooks/1-15-2024_NLD-AA-BC.ipynb
+new file mode 100644
+index 0000000..f46eb88
+--- /dev/null
++++ b/notebooks/1-15-2024_NLD-AA-BC.ipynb
+@@ -0,0 +1,1392 @@
++{
++ "cells": [
++  {
++   "cell_type": "code",
++   "id": "initial_id",
++   "metadata": {
++    "collapsed": true,
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:24:08.002986Z",
++     "start_time": "2025-01-16T16:24:07.832939Z"
++    }
++   },
++   "source": [
++    "import nle.dataset as nld\n",
++    "from nle.nethack import tty_render\n",
++    "from nle.dataset import db"
++   ],
++   "outputs": [],
++   "execution_count": 1
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:24:09.610704Z",
++     "start_time": "2025-01-16T16:24:09.608031Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "nld_taster_path = \"/code/nld-aa-taster/nle_data\"\n",
++    "dbfilename = \"/code/NetHack-Research/data/raw/nld-taster.db\"\n",
++    "dataset_name = \"nld-taster\""
++   ],
++   "id": "38495cdb3d5bd38b",
++   "outputs": [],
++   "execution_count": 2
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:24:10.610935Z",
++     "start_time": "2025-01-16T16:24:10.607651Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "if not nld.db.exists(dbfilename):\n",
++    "    # 3. Create the db and add the directory\n",
++    "    nld.db.create(dbfilename)\n",
++    "    nld.add_nledata_directory(nld_taster_path, \"nld-taster\", dbfilename)"
++   ],
++   "id": "fc6bd786a80b6c9e",
++   "outputs": [],
++   "execution_count": 3
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:24:11.585403Z",
++     "start_time": "2025-01-16T16:24:11.581956Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "# Create a connection to specify the database to use\n",
++    "db_conn = nld.db.connect(filename=dbfilename)\n",
++    "\n",
++    "# Then you can inspect the number of games in each dataset:\n",
++    "print(f\"NLD-AA \\\"Taster\\\" Dataset has {nld.db.count_games('nld-taster', conn=db_conn)} games.\")"
++   ],
++   "id": "6746c3c946d72f28",
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "NLD-AA \"Taster\" Dataset has 1934 games.\n"
++     ]
++    }
++   ],
++   "execution_count": 4
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:24:15.280304Z",
++     "start_time": "2025-01-16T16:24:14.510136Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "from katakomba.env import NetHackChallenge, OfflineNetHackChallengeWrapper\n",
++    "from katakomba.utils.datasets import SequentialBuffer\n",
++    "\n",
++    "# The task is specified using the character field\n",
++    "env = NetHackChallenge (\n",
++    "  character = \"mon-hum-neu\",\n",
++    "  observation_keys = [\"tty_chars\", \"tty_colors\", \"tty_cursor\"]\n",
++    ")\n",
++    "\n",
++    "# A convenient wrapper that provides interfaces for dataset loading, score normalization, and deathlevel extraction\n",
++    "env = OfflineNetHackChallengeWrapper(env)\n",
++    "\n",
++    "# Several options for dataset reading (check the paper for details): \n",
++    "# - from RAM, decompressed (\"in_memory\"): fast but requires a lot of RAM, takes 5-10 minutes for decompression first\n",
++    "# - from Disk, decompressed (\"memmap\"): a bit slower than RAM, takes 5-10 minutes for decompression first\n",
++    "# - from Disk, compressed (\"compressed\"): very slow but no need for decompression, useful for debugging\n",
++    "# Note that this will download the dataset automatically if not found\n",
++    "dataset = env.get_dataset(mode=\"compressed\", scale=\"small\")\n",
++    "\n",
++    "# Throws an Error... \n",
++    "# Auxillary tools for computing normalized scores or extracting deathlevels\n",
++    "# env.get_normalized_score(score=1337.0)\n",
++    "# env.get_current_depth()\n"
++   ],
++   "id": "3a8bec409bd60031",
++   "outputs": [
++    {
++     "data": {
++      "text/plain": [
++       "Preparing:   0%|          | 0/683 [00:00<?, ?it/s]"
++      ],
++      "application/vnd.jupyter.widget-view+json": {
++       "version_major": 2,
++       "version_minor": 0,
++       "model_id": "f900cbd42e034735b6c519d7a5581a98"
++      },
++      "application/json": {
++       "n": 0,
++       "total": 683,
++       "elapsed": 0.008270502090454102,
++       "ncols": null,
++       "nrows": null,
++       "prefix": "Preparing",
++       "ascii": false,
++       "unit": "it",
++       "unit_scale": false,
++       "rate": null,
++       "bar_format": null,
++       "postfix": null,
++       "unit_divisor": 1000,
++       "initial": 0,
++       "colour": null
++      }
++     },
++     "metadata": {},
++     "output_type": "display_data"
++    }
++   ],
++   "execution_count": 5
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:24:17.874297Z",
++     "start_time": "2025-01-16T16:24:17.236325Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "buffer = SequentialBuffer(\n",
++    "  dataset=dataset,\n",
++    "  seq_len=32,\n",
++    "  batch_size=32, # Each batch element is a different trajectory\n",
++    "  seed=42,\n",
++    "  add_next_step=True # if you want (s, a, r, s') instead of (s, a, r)\n",
++    ")\n",
++    "\n",
++    "# What's inside the batch?\n",
++    "# Note that the next batch will include the +1 element as expected\n",
++    "batch = buffer.sample()\n",
++    "print(\n",
++    "  batch[\"tty_chars\"],  # [batch_size, seq_len + 1, 80, 24]\n",
++    "  batch[\"tty_colors\"], # [batch_size, seq_len + 1, 80, 24]\n",
++    "  batch[\"tty_cursor\"], # [batch_size, seq_len + 1, 2]\n",
++    "  batch[\"actions\"],    # [batch_size, seq_len + 1]\n",
++    "  batch[\"rewards\"],    # [batch_size, seq_len + 1]\n",
++    "  batch[\"dones\"]       # [batch_size, seq_len + 1]\n",
++    ")\n",
++    "\n",
++    "# In case you don't want to store the decompressed dataset beyond code execution\n",
++    "dataset.close()"
++   ],
++   "id": "baa8472146dc229c",
++   "outputs": [
++    {
++     "name": "stdout",
++     "output_type": "stream",
++     "text": [
++      "[[[[ 72 101 108 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  83  58  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  83  58  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  83  58  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 68 105 115 ...  32  32  32]\n",
++      "   [ 32  45  45 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32 115 ...  32  32  32]\n",
++      "   [ 83 112 101 ...  32  32  32]\n",
++      "   [ 32  32 115 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  83  58  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]]\n",
++      "\n",
++      "\n",
++      " [[[ 72 101 108 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 68 105 115 ...  32  32  32]\n",
++      "   [ 32  45  45 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32 115 ...  32  32  32]\n",
++      "   [ 83 112 101 ...  32  32  32]\n",
++      "   [ 32  32 115 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]]\n",
++      "\n",
++      "\n",
++      " [[[ 72 101 108 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  58  48  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  58  48  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  58  48  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 68 105 115 ...  32  32  32]\n",
++      "   [ 32  45  45 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32 115 ...  32  32  32]\n",
++      "   [ 83 112 101 ...  32  32  32]\n",
++      "   [ 32  32 115 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  58  48  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]]\n",
++      "\n",
++      "\n",
++      " ...\n",
++      "\n",
++      "\n",
++      " [[[ 72 101 108 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  48  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  48  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  48  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 68 105 115 ...  32  32  32]\n",
++      "   [ 32  45  45 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32 115 ...  32  32  32]\n",
++      "   [ 83 112 101 ...  32  32  32]\n",
++      "   [ 32  32 115 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  48  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]]\n",
++      "\n",
++      "\n",
++      " [[[ 72 101 108 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 68 105 115 ...  32  32  32]\n",
++      "   [ 32  45  45 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32 115 ...  32  32  32]\n",
++      "   [ 83 112 101 ...  32  32  32]\n",
++      "   [ 32  32 115 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]]\n",
++      "\n",
++      "\n",
++      " [[[ 72 101 108 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 68 105 115 ...  32  32  32]\n",
++      "   [ 32  45  45 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32 115 ...  32  32  32]\n",
++      "   [ 83 112 101 ...  32  32  32]\n",
++      "   [ 32  32 115 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]]\n",
++      "\n",
++      "  [[ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   ...\n",
++      "   [ 32  32  32 ...  32  32  32]\n",
++      "   [ 65 103 101 ...  32  32  32]\n",
++      "   [ 68 108 118 ...  32  32  32]]]] [[[[ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  7 ...  0  0  0]\n",
++      "   [23 23 23 ...  0  0  0]\n",
++      "   [ 0  0  7 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]]\n",
++      "\n",
++      "\n",
++      " [[[ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  7 ...  0  0  0]\n",
++      "   [23 23 23 ...  0  0  0]\n",
++      "   [ 0  0  7 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]]\n",
++      "\n",
++      "\n",
++      " [[[ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  7 ...  0  0  0]\n",
++      "   [23 23 23 ...  0  0  0]\n",
++      "   [ 0  0  7 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  7  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]]\n",
++      "\n",
++      "\n",
++      " ...\n",
++      "\n",
++      "\n",
++      " [[[ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  7 ...  0  0  0]\n",
++      "   [23 23 23 ...  0  0  0]\n",
++      "   [ 0  0  7 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  7  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]]\n",
++      "\n",
++      "\n",
++      " [[[ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  7 ...  0  0  0]\n",
++      "   [23 23 23 ...  0  0  0]\n",
++      "   [ 0  0  7 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]]\n",
++      "\n",
++      "\n",
++      " [[[ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  ...\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 0  7  7 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  7 ...  0  0  0]\n",
++      "   [23 23 23 ...  0  0  0]\n",
++      "   [ 0  0  7 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]]\n",
++      "\n",
++      "  [[ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   ...\n",
++      "   [ 0  0  0 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]\n",
++      "   [ 7  7  7 ...  0  0  0]]]] [[[17 63]\n",
++      "  [17 63]\n",
++      "  [17 63]\n",
++      "  ...\n",
++      "  [23  9]\n",
++      "  [ 5  9]\n",
++      "  [17 63]]\n",
++      "\n",
++      " [[17 25]\n",
++      "  [17 25]\n",
++      "  [17 25]\n",
++      "  ...\n",
++      "  [23  9]\n",
++      "  [ 5  9]\n",
++      "  [17 25]]\n",
++      "\n",
++      " [[13 72]\n",
++      "  [13 72]\n",
++      "  [13 72]\n",
++      "  ...\n",
++      "  [23  9]\n",
++      "  [ 5  9]\n",
++      "  [13 72]]\n",
++      "\n",
++      " ...\n",
++      "\n",
++      " [[10 72]\n",
++      "  [10 72]\n",
++      "  [10 72]\n",
++      "  ...\n",
++      "  [23  9]\n",
++      "  [ 5  9]\n",
++      "  [10 72]]\n",
++      "\n",
++      " [[14  5]\n",
++      "  [14  5]\n",
++      "  [14  5]\n",
++      "  ...\n",
++      "  [23  9]\n",
++      "  [ 5  9]\n",
++      "  [14  5]]\n",
++      "\n",
++      " [[ 6 60]\n",
++      "  [ 6 60]\n",
++      "  [ 6 60]\n",
++      "  ...\n",
++      "  [23  9]\n",
++      "  [ 5  9]\n",
++      "  [ 6 60]]] [[ 38  38  25 ... 107 107  51]\n",
++      " [ 38  38  25 ... 107 107  51]\n",
++      " [ 38  38  25 ... 107 107  51]\n",
++      " ...\n",
++      " [ 38  38  25 ... 107 107  51]\n",
++      " [ 38  38  25 ... 107 107  51]\n",
++      " [ 38  38  25 ... 107 107  51]] [[0 0 0 ... 0 0 0]\n",
++      " [0 0 0 ... 0 0 0]\n",
++      " [0 0 0 ... 0 0 0]\n",
++      " ...\n",
++      " [0 0 0 ... 0 0 0]\n",
++      " [0 0 0 ... 0 0 0]\n",
++      " [0 0 0 ... 0 0 0]] [[False False False ... False False False]\n",
++      " [False False False ... False False False]\n",
++      " [False False False ... False False False]\n",
++      " ...\n",
++      " [False False False ... False False False]\n",
++      " [False False False ... False False False]\n",
++      " [False False False ... False False False]]\n"
++     ]
++    }
++   ],
++   "execution_count": 6
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:29:54.872873Z",
++     "start_time": "2025-01-16T16:29:54.868805Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "import pyrallis\n",
++    "from dataclasses import dataclass, asdict\n",
++    "import random\n",
++    "import wandb\n",
++    "import os\n",
++    "import uuid\n",
++    "import torch\n",
++    "import torch.nn as nn"
++   ],
++   "id": "52698058ced92283",
++   "outputs": [],
++   "execution_count": 8
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:29:56.345843Z",
++     "start_time": "2025-01-16T16:29:56.340580Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "from gym.vector import AsyncVectorEnv\n",
++    "from concurrent.futures import ThreadPoolExecutor\n",
++    "import torch.nn.functional as F\n",
++    "from tqdm.auto import tqdm, trange\n",
++    "from torch.distributions import Categorical\n",
++    "import numpy as np"
++   ],
++   "id": "b86c7cd59354e4d9",
++   "outputs": [],
++   "execution_count": 9
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:39:58.955924Z",
++     "start_time": "2025-01-16T16:39:58.948618Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "from multiprocessing import set_start_method\n",
++    "from katakomba.env import NetHackChallenge, OfflineNetHackChallengeWrapper\n",
++    "from katakomba.nn.chaotic_dwarf import TopLineEncoder, BottomLinesEncoder, ScreenEncoder\n",
++    "from katakomba.utils.render import SCREEN_SHAPE, render_screen_image\n",
++    "from katakomba.utils.datasets import SequentialBuffer\n",
++    "from katakomba.utils.misc import Timeit\n",
++    "from typing import Optional, Tuple, List, Dict\n",
++    "\n",
++    "torch.backends.cudnn.benchmark = True\n",
++    "DEVICE = \"cuda\" if torch.cuda.is_available() else \"cpu\""
++   ],
++   "id": "9f568e1315f0b223",
++   "outputs": [],
++   "execution_count": 18
++  },
++  {
++   "metadata": {
++    "ExecuteTime": {
++     "end_time": "2025-01-16T16:40:10.052184Z",
++     "start_time": "2025-01-16T16:40:10.013673Z"
++    }
++   },
++   "cell_type": "code",
++   "source": [
++    "@dataclass\n",
++    "class TrainConfig:\n",
++    "    character: str = \"mon-hum-neu\"\n",
++    "    data_mode: str = \"compressed\"\n",
++    "    # Wandb logging\n",
++    "    project: str = \"NetHack\"\n",
++    "    group: str = \"small_scale_bc\"\n",
++    "    name: str = \"bc\"\n",
++    "    version: int = 0\n",
++    "    # Model\n",
++    "    rnn_hidden_dim: int = 2048\n",
++    "    rnn_layers: int = 2\n",
++    "    use_prev_action: bool = True\n",
++    "    rnn_dropout: float = 0.0\n",
++    "    # Training\n",
++    "    update_steps: int = 500_000\n",
++    "    batch_size: int = 64\n",
++    "    seq_len: int = 16\n",
++    "    learning_rate: float = 3e-4\n",
++    "    weight_decay: float = 0.0\n",
++    "    clip_grad_norm: Optional[float] = None\n",
++    "    checkpoints_path: Optional[str] = None\n",
++    "    eval_every: int = 10_000\n",
++    "    eval_episodes: int = 50\n",
++    "    eval_processes: int = 14\n",
++    "    render_processes: int = 14\n",
++    "    eval_seed: int = 50\n",
++    "    train_seed: int = 42\n",
++    "\n",
++    "    def __post_init__(self):\n",
++    "        self.group = f\"{self.group}-v{str(self.version)}\"\n",
++    "        self.name = f\"{self.name}-{self.character}-{str(uuid.uuid4())[:8]}\"\n",
++    "        if self.checkpoints_path is not None:\n",
++    "            self.checkpoints_path = os.path.join(self.checkpoints_path, self.group, self.name)\n",
++    "\n",
++    "\n",
++    "def set_seed(seed: int):\n",
++    "    os.environ[\"PYTHONHASHSEED\"] = str(seed)\n",
++    "    np.random.seed(seed)\n",
++    "    random.seed(seed)\n",
++    "    torch.manual_seed(seed)\n",
++    "\n",
++    "\n",
++    "@torch.no_grad()\n",
++    "def filter_wd_params(model: nn.Module) -> Tuple[List[nn.parameter.Parameter], List[nn.parameter.Parameter]]:\n",
++    "    no_decay, decay = [], []\n",
++    "    for name, param in model.named_parameters():\n",
++    "        if hasattr(param, 'requires_grad') and not param.requires_grad:\n",
++    "            continue\n",
++    "        if 'weight' in name and 'norm' not in name and 'bn' not in name:\n",
++    "            decay.append(param)\n",
++    "        else:\n",
++    "            no_decay.append(param)\n",
++    "    assert len(no_decay) + len(decay) == len(list(model.parameters()))\n",
++    "    return no_decay, decay\n",
++    "\n",
++    "\n",
++    "def dict_to_tensor(data: Dict[str, np.ndarray], device: str) -> Dict[str, torch.Tensor]:\n",
++    "    return {k: torch.as_tensor(v, device=device) for k, v in data.items()}\n",
++    "\n",
++    "\n",
++    "class Actor(nn.Module):\n",
++    "    def __init__(\n",
++    "            self,\n",
++    "            action_dim: int,\n",
++    "            rnn_hidden_dim: int = 512,\n",
++    "            rnn_layers: int = 1,\n",
++    "            rnn_dropout: float = 0.0,\n",
++    "            use_prev_action: bool = True\n",
++    "    ):\n",
++    "        super().__init__()\n",
++    "        # Action dimensions and prev actions\n",
++    "        self.num_actions = action_dim\n",
++    "        self.use_prev_action = use_prev_action\n",
++    "        self.prev_actions_dim = self.num_actions if self.use_prev_action else 0\n",
++    "\n",
++    "        # Encoders\n",
++    "        self.topline_encoder = TopLineEncoder()\n",
++    "        self.bottomline_encoder = torch.jit.script(BottomLinesEncoder())\n",
++    "\n",
++    "        screen_shape = (SCREEN_SHAPE[1], SCREEN_SHAPE[2])\n",
++    "        self.screen_encoder = torch.jit.script(ScreenEncoder(screen_shape))\n",
++    "\n",
++    "        self.h_dim = sum(\n",
++    "            [\n",
++    "                self.topline_encoder.hidden_dim,\n",
++    "                self.bottomline_encoder.hidden_dim,\n",
++    "                self.screen_encoder.hidden_dim,\n",
++    "                self.prev_actions_dim,\n",
++    "            ]\n",
++    "        )\n",
++    "        # Policy\n",
++    "        self.rnn = nn.LSTM(\n",
++    "            self.h_dim,\n",
++    "            rnn_hidden_dim,\n",
++    "            num_layers=rnn_layers,\n",
++    "            dropout=rnn_dropout,\n",
++    "            batch_first=True\n",
++    "        )\n",
++    "        self.head = nn.Linear(rnn_hidden_dim, self.num_actions)\n",
++    "\n",
++    "    def forward(self, inputs, state=None):\n",
++    "        B, T, C, H, W = inputs[\"screen_image\"].shape\n",
++    "        topline = inputs[\"tty_chars\"][..., 0, :]\n",
++    "        bottom_line = inputs[\"tty_chars\"][..., -2:, :]\n",
++    "\n",
++    "        encoded_state = [\n",
++    "            self.topline_encoder(\n",
++    "                topline.float(memory_format=torch.contiguous_format).view(T * B, -1)\n",
++    "            ),\n",
++    "            self.bottomline_encoder(\n",
++    "                bottom_line.float(memory_format=torch.contiguous_format).view(T * B, -1)\n",
++    "            ),\n",
++    "            self.screen_encoder(\n",
++    "                inputs[\"screen_image\"]\n",
++    "                .float(memory_format=torch.contiguous_format)\n",
++    "                .view(T * B, C, H, W)\n",
++    "            ),\n",
++    "        ]\n",
++    "        if self.use_prev_action:\n",
++    "            encoded_state.append(\n",
++    "                F.one_hot(inputs[\"prev_actions\"], self.num_actions).view(T * B, -1)\n",
++    "            )\n",
++    "\n",
++    "        encoded_state = torch.cat(encoded_state, dim=1)\n",
++    "        core_output, new_state = self.rnn(encoded_state.view(B, T, -1), state)\n",
++    "        logits = self.head(core_output)\n",
++    "\n",
++    "        return logits, new_state\n",
++    "\n",
++    "    @torch.no_grad()\n",
++    "    def vec_act(self, obs, state=None, device=\"cpu\"):\n",
++    "        inputs = {\n",
++    "            \"tty_chars\": torch.tensor(obs[\"tty_chars\"][:, None], device=device),\n",
++    "            \"screen_image\": torch.tensor(obs[\"screen_image\"][:, None], device=device),\n",
++    "            \"prev_actions\": torch.tensor(obs[\"prev_actions\"][:, None], dtype=torch.long, device=device)\n",
++    "        }\n",
++    "        logits, new_state = self(inputs, state)\n",
++    "        actions = torch.argmax(logits.squeeze(1), dim=-1)\n",
++    "        return actions.cpu().numpy(), new_state\n",
++    "\n",
++    "\n",
++    "@torch.no_grad()\n",
++    "def vec_evaluate(\n",
++    "        vec_env: AsyncVectorEnv,\n",
++    "        actor: Actor,\n",
++    "        num_episodes: int,\n",
++    "        seed: str = 0,\n",
++    "        device: str = \"cpu\"\n",
++    ") -> Dict[str, np.ndarray]:\n",
++    "    actor.eval()\n",
++    "    # set seed for reproducibility (reseed=False by default)\n",
++    "    vec_env.seed(seed)\n",
++    "    # all this work is needed to mitigate bias for shorter\n",
++    "    # episodes during vectorized evaluation, for more see:\n",
++    "    # https://github.com/DLR-RM/stable-baselines3/issues/402\n",
++    "    n_envs = vec_env.num_envs\n",
++    "    episode_rewards = []\n",
++    "    episode_lengths = []\n",
++    "    episode_depths = []\n",
++    "\n",
++    "    episode_counts = np.zeros(n_envs, dtype=\"int\")\n",
++    "    # Divides episodes among different sub environments in the vector as evenly as possible\n",
++    "    episode_count_targets = np.array([(num_episodes + i) // n_envs for i in range(n_envs)], dtype=\"int\")\n",
++    "\n",
++    "    current_rewards = np.zeros(n_envs)\n",
++    "    current_lengths = np.zeros(n_envs, dtype=\"int\")\n",
++    "    observations = vec_env.reset()\n",
++    "    observations[\"prev_actions\"] = np.zeros(n_envs, dtype=float)\n",
++    "\n",
++    "    rnn_states = None\n",
++    "    pbar = tqdm(total=num_episodes)\n",
++    "    while (episode_counts < episode_count_targets).any():\n",
++    "        # faster to do this here for entire batch, than in wrappers for each env\n",
++    "        observations[\"screen_image\"] = render_screen_image(\n",
++    "            tty_chars=observations[\"tty_chars\"][:, np.newaxis, ...],\n",
++    "            tty_colors=observations[\"tty_colors\"][:, np.newaxis, ...],\n",
++    "            tty_cursor=observations[\"tty_cursor\"][:, np.newaxis, ...],\n",
++    "        )\n",
++    "        observations[\"screen_image\"] = np.squeeze(observations[\"screen_image\"], 1)\n",
++    "\n",
++    "        actions, rnn_states = actor.vec_act(observations, rnn_states, device=device)\n",
++    "\n",
++    "        observations, rewards, dones, infos = vec_env.step(actions)\n",
++    "        observations[\"prev_actions\"] = actions\n",
++    "\n",
++    "        current_rewards += rewards\n",
++    "        current_lengths += 1\n",
++    "\n",
++    "        for i in range(n_envs):\n",
++    "            if episode_counts[i] < episode_count_targets[i]:\n",
++    "                if dones[i]:\n",
++    "                    episode_rewards.append(current_rewards[i])\n",
++    "                    episode_lengths.append(current_lengths[i])\n",
++    "                    episode_depths.append(infos[i][\"current_depth\"])\n",
++    "                    episode_counts[i] += 1\n",
++    "                    pbar.update(1)\n",
++    "\n",
++    "                    current_rewards[i] = 0\n",
++    "                    current_lengths[i] = 0\n",
++    "\n",
++    "    pbar.close()\n",
++    "    result = {\n",
++    "        \"reward_median\": np.median(episode_rewards),\n",
++    "        \"reward_mean\": np.mean(episode_rewards),\n",
++    "        \"reward_std\": np.std(episode_rewards),\n",
++    "        \"reward_min\": np.min(episode_rewards),\n",
++    "        \"reward_max\": np.max(episode_rewards),\n",
++    "        \"reward_raw\": np.array(episode_rewards),\n",
++    "        # depth\n",
++    "        \"depth_median\": np.median(episode_depths),\n",
++    "        \"depth_mean\": np.mean(episode_depths),\n",
++    "        \"depth_std\": np.std(episode_depths),\n",
++    "        \"depth_min\": np.min(episode_depths),\n",
++    "        \"depth_max\": np.max(episode_depths),\n",
++    "        \"depth_raw\": np.array(episode_depths),\n",
++    "    }\n",
++    "    actor.train()\n",
++    "    return result\n",
++    "\n",
++    "\n",
++    "@pyrallis.wrap()\n",
++    "def train(config: TrainConfig):\n",
++    "    print(f\"Device: {DEVICE}\")\n",
++    "    wandb.init(\n",
++    "        config=asdict(config),\n",
++    "        project=config.project,\n",
++    "        group=config.group,\n",
++    "        name=config.name,\n",
++    "        id=str(uuid.uuid4()),\n",
++    "        save_code=True,\n",
++    "    )\n",
++    "    if config.checkpoints_path is not None:\n",
++    "        print(f\"Checkpoints path: {config.checkpoints_path}\")\n",
++    "        os.makedirs(config.checkpoints_path, exist_ok=True)\n",
++    "        with open(os.path.join(config.checkpoints_path, \"config.yaml\"), \"w\") as f:\n",
++    "            pyrallis.dump(config, f)\n",
++    "\n",
++    "    set_seed(config.train_seed)\n",
++    "\n",
++    "    def env_fn():\n",
++    "        env = NetHackChallenge(\n",
++    "            character=config.character,\n",
++    "            observation_keys=[\"tty_chars\", \"tty_colors\", \"tty_cursor\"]\n",
++    "        )\n",
++    "        env = OfflineNetHackChallengeWrapper(env)\n",
++    "        return env\n",
++    "\n",
++    "    tmp_env = env_fn()\n",
++    "    eval_env = AsyncVectorEnv(\n",
++    "        env_fns=[env_fn for _ in range(config.eval_processes)],\n",
++    "        copy=False\n",
++    "    )\n",
++    "    buffer = SequentialBuffer(\n",
++    "        dataset=tmp_env.get_dataset(mode=config.data_mode, scale=\"small\"),\n",
++    "        seq_len=config.seq_len,\n",
++    "        batch_size=config.batch_size,\n",
++    "        seed=config.train_seed,\n",
++    "        add_next_step=False\n",
++    "    )\n",
++    "    tp = ThreadPoolExecutor(max_workers=config.render_processes)\n",
++    "\n",
++    "    actor = Actor(\n",
++    "        action_dim=eval_env.single_action_space.n,\n",
++    "        use_prev_action=config.use_prev_action,\n",
++    "        rnn_hidden_dim=config.rnn_hidden_dim,\n",
++    "        rnn_layers=config.rnn_layers,\n",
++    "        rnn_dropout=config.rnn_dropout,\n",
++    "    ).to(DEVICE)\n",
++    "\n",
++    "    no_decay_params, decay_params = filter_wd_params(actor)\n",
++    "    optim = torch.optim.AdamW([\n",
++    "        {\"params\": no_decay_params, \"weight_decay\": 0.0},\n",
++    "        {\"params\": decay_params, \"weight_decay\": config.weight_decay}\n",
++    "    ], lr=config.learning_rate)\n",
++    "    print(\"Number of parameters:\", sum(p.numel() for p in actor.parameters()))\n",
++    "\n",
++    "    scaler = torch.cuda.amp.GradScaler()\n",
++    "\n",
++    "    rnn_state = None\n",
++    "    prev_actions = torch.zeros((config.batch_size, 1), dtype=torch.long, device=DEVICE)\n",
++    "    for step in trange(1, config.update_steps + 1, desc=\"Training\"):\n",
++    "        with Timeit() as timer:\n",
++    "            batch = buffer.sample()\n",
++    "            screen_image = render_screen_image(\n",
++    "                tty_chars=batch[\"tty_chars\"],\n",
++    "                tty_colors=batch[\"tty_colors\"],\n",
++    "                tty_cursor=batch[\"tty_cursor\"],\n",
++    "                threadpool=tp,\n",
++    "            )\n",
++    "            batch[\"screen_image\"] = screen_image\n",
++    "            batch = dict_to_tensor(batch, device=DEVICE)\n",
++    "\n",
++    "        wandb.log(\n",
++    "            {\n",
++    "                \"times/batch_loading_cpu\": timer.elapsed_time_cpu,\n",
++    "                \"times/batch_loading_gpu\": timer.elapsed_time_gpu,\n",
++    "            },\n",
++    "            step=step,\n",
++    "        )\n",
++    "\n",
++    "        with Timeit() as timer:\n",
++    "            with torch.cuda.amp.autocast():\n",
++    "                logits, rnn_state = actor(\n",
++    "                    inputs={\n",
++    "                        \"screen_image\": batch[\"screen_image\"],\n",
++    "                        \"tty_chars\": batch[\"tty_chars\"],\n",
++    "                        \"prev_actions\": torch.cat(\n",
++    "                            [prev_actions.long(), batch[\"actions\"][:, :-1].long()], dim=1\n",
++    "                        )\n",
++    "                    },\n",
++    "                    state=rnn_state,\n",
++    "                )\n",
++    "                rnn_state = [a.detach() for a in rnn_state]\n",
++    "\n",
++    "                dist = Categorical(logits=logits)\n",
++    "                loss = -dist.log_prob(batch[\"actions\"]).mean()\n",
++    "                # update prev_actions for next iteration\n",
++    "                prev_actions = batch[\"actions\"][:, -1].unsqueeze(-1)\n",
++    "\n",
++    "        wandb.log({\"times/forward_pass\": timer.elapsed_time_gpu}, step=step)\n",
++    "\n",
++    "        with Timeit() as timer:\n",
++    "            scaler.scale(loss).backward()\n",
++    "            # loss.backward()\n",
++    "            if config.clip_grad_norm is not None:\n",
++    "                scaler.unscale_(optim)\n",
++    "                torch.nn.utils.clip_grad_norm_(actor.parameters(), config.clip_grad_norm)\n",
++    "            # optim.step()\n",
++    "            scaler.step(optim)\n",
++    "            scaler.update()\n",
++    "            optim.zero_grad(set_to_none=True)\n",
++    "\n",
++    "        wandb.log({\"times/backward_pass\": timer.elapsed_time_gpu}, step=step)\n",
++    "\n",
++    "        wandb.log({\n",
++    "                \"loss\": loss.detach().item(),\n",
++    "                \"transitions\": config.batch_size * config.seq_len * step,\n",
++    "        }, step=step)\n",
++    "\n",
++    "        if step % config.eval_every == 0:\n",
++    "            with Timeit() as timer:\n",
++    "                eval_stats = vec_evaluate(\n",
++    "                    eval_env, actor, config.eval_episodes, config.eval_seed, device=DEVICE\n",
++    "                )\n",
++    "            raw_returns = eval_stats.pop(\"reward_raw\")\n",
++    "            raw_depths = eval_stats.pop(\"depth_raw\")\n",
++    "            normalized_scores = tmp_env.get_normalized_score(raw_returns)\n",
++    "\n",
++    "            wandb.log({\n",
++    "                \"times/evaluation_gpu\": timer.elapsed_time_gpu,\n",
++    "                \"times/evaluation_cpu\": timer.elapsed_time_cpu,\n",
++    "            }, step=step)\n",
++    "\n",
++    "            wandb.log(dict(\n",
++    "                eval_stats,\n",
++    "                **{\"transitions\": config.batch_size * config.seq_len * step},\n",
++    "            ), step=step)\n",
++    "\n",
++    "            if config.checkpoints_path is not None:\n",
++    "                torch.save(actor.state_dict(), os.path.join(config.checkpoints_path, f\"{step}.pt\"))\n",
++    "                # saving raw logs\n",
++    "                np.save(os.path.join(config.checkpoints_path, f\"{step}_returns.npy\"), raw_returns)\n",
++    "                np.save(os.path.join(config.checkpoints_path, f\"{step}_depths.npy\"), raw_depths)\n",
++    "                np.save(os.path.join(config.checkpoints_path, f\"{step}_normalized_scores.npy\"), normalized_scores)\n",
++    "\n",
++    "            # also saving to wandb files for easier use in the future\n",
++    "            np.save(os.path.join(wandb.run.dir, f\"{step}_returns.npy\"), raw_returns)\n",
++    "            np.save(os.path.join(wandb.run.dir, f\"{step}_depths.npy\"), raw_depths)\n",
++    "            np.save(os.path.join(wandb.run.dir, f\"{step}_normalized_scores.npy\"), normalized_scores)\n",
++    "\n",
++    "    buffer.close()"
++   ],
++   "id": "760382dd448e7d0f",
++   "outputs": [],
++   "execution_count": 19
++  },
++  {
++   "metadata": {},
++   "cell_type": "code",
++   "outputs": [
++    {
++     "ename": "RuntimeError",
++     "evalue": "context has already been set",
++     "output_type": "error",
++     "traceback": [
++      "\u001B[0;31m---------------------------------------------------------------------------\u001B[0m",
++      "\u001B[0;31mRuntimeError\u001B[0m                              Traceback (most recent call last)",
++      "Cell \u001B[0;32mIn[20], line 2\u001B[0m\n\u001B[1;32m      1\u001B[0m \u001B[38;5;28;01mif\u001B[39;00m \u001B[38;5;18m__name__\u001B[39m \u001B[38;5;241m==\u001B[39m \u001B[38;5;124m\"\u001B[39m\u001B[38;5;124m__main__\u001B[39m\u001B[38;5;124m\"\u001B[39m:\n\u001B[0;32m----> 2\u001B[0m     \u001B[43mset_start_method\u001B[49m\u001B[43m(\u001B[49m\u001B[38;5;124;43m\"\u001B[39;49m\u001B[38;5;124;43mspawn\u001B[39;49m\u001B[38;5;124;43m\"\u001B[39;49m\u001B[43m)\u001B[49m\n\u001B[1;32m      3\u001B[0m     train()\n",
++      "File \u001B[0;32m/usr/lib/python3.10/multiprocessing/context.py:247\u001B[0m, in \u001B[0;36mDefaultContext.set_start_method\u001B[0;34m(self, method, force)\u001B[0m\n\u001B[1;32m    245\u001B[0m \u001B[38;5;28;01mdef\u001B[39;00m \u001B[38;5;21mset_start_method\u001B[39m(\u001B[38;5;28mself\u001B[39m, method, force\u001B[38;5;241m=\u001B[39m\u001B[38;5;28;01mFalse\u001B[39;00m):\n\u001B[1;32m    246\u001B[0m     \u001B[38;5;28;01mif\u001B[39;00m \u001B[38;5;28mself\u001B[39m\u001B[38;5;241m.\u001B[39m_actual_context \u001B[38;5;129;01mis\u001B[39;00m \u001B[38;5;129;01mnot\u001B[39;00m \u001B[38;5;28;01mNone\u001B[39;00m \u001B[38;5;129;01mand\u001B[39;00m \u001B[38;5;129;01mnot\u001B[39;00m force:\n\u001B[0;32m--> 247\u001B[0m         \u001B[38;5;28;01mraise\u001B[39;00m \u001B[38;5;167;01mRuntimeError\u001B[39;00m(\u001B[38;5;124m'\u001B[39m\u001B[38;5;124mcontext has already been set\u001B[39m\u001B[38;5;124m'\u001B[39m)\n\u001B[1;32m    248\u001B[0m     \u001B[38;5;28;01mif\u001B[39;00m method \u001B[38;5;129;01mis\u001B[39;00m \u001B[38;5;28;01mNone\u001B[39;00m \u001B[38;5;129;01mand\u001B[39;00m force:\n\u001B[1;32m    249\u001B[0m         \u001B[38;5;28mself\u001B[39m\u001B[38;5;241m.\u001B[39m_actual_context \u001B[38;5;241m=\u001B[39m \u001B[38;5;28;01mNone\u001B[39;00m\n",
++      "\u001B[0;31mRuntimeError\u001B[0m: context has already been set"
++     ]
++    }
++   ],
++   "execution_count": 20,
++   "source": [
++    "if __name__ == \"__main__\":\n",
++    "    set_start_method(\"spawn\")\n",
++    "    train()"
++   ],
++   "id": "e734f0919d2c1a0"
++  },
++  {
++   "metadata": {},
++   "cell_type": "code",
++   "outputs": [],
++   "execution_count": null,
++   "source": [
++    "import h5py\n",
++    "\n",
++    "# Open the HDF5 file\n",
++    "file_path = \"/code/NetHack-Research/data/raw/data-arc-hum-law-any.hdf5\"\n",
++    "with h5py.File(file_path, 'r') as f:\n",
++    "    # Print all groups and datasets\n",
++    "    def print_structure(name, obj):\n",
++    "        print(name)\n",
++    "\n",
++    "    f.visititems(print_structure)\n"
++   ],
++   "id": "ae19c1ed53a2ec40"
++  }
++ ],
++ "metadata": {
++  "kernelspec": {
++   "display_name": "Python 3",
++   "language": "python",
++   "name": "python3"
++  },
++  "language_info": {
++   "codemirror_mode": {
++    "name": "ipython",
++    "version": 2
++   },
++   "file_extension": ".py",
++   "mimetype": "text/x-python",
++   "name": "python",
++   "nbconvert_exporter": "python",
++   "pygments_lexer": "ipython2",
++   "version": "2.7.6"
++  }
++ },
++ "nbformat": 4,
++ "nbformat_minor": 5
++}
+diff --git a/notebooks/1-2-2024_Expert-Filtering.ipynb b/notebooks/1-2-2024_Expert-Filtering.ipynb
+index 0a3d246..6fad88a 100644
+--- a/notebooks/1-2-2024_Expert-Filtering.ipynb
++++ b/notebooks/1-2-2024_Expert-Filtering.ipynb
+@@ -6,8 +6,8 @@
+    "metadata": {
+     "collapsed": true,
+     "ExecuteTime": {
+-     "end_time": "2025-01-06T20:44:34.056499Z",
+-     "start_time": "2025-01-06T20:44:34.053925Z"
++     "end_time": "2025-01-12T22:42:06.574146Z",
++     "start_time": "2025-01-12T22:42:06.571723Z"
+     }
+    },
+    "source": [
+@@ -20,12 +20,7 @@
+    "execution_count": 1
+   },
+   {
+-   "metadata": {
+-    "ExecuteTime": {
+-     "end_time": "2025-01-06T20:44:44.551723Z",
+-     "start_time": "2025-01-06T20:44:37.558108Z"
+-    }
+-   },
++   "metadata": {},
+    "cell_type": "code",
+    "source": [
+     "# Full dataset\n",
+@@ -37,679 +32,8 @@
+     "full_df.head(20)"
+    ],
+    "id": "55f10c2a1846d900",
+-   "outputs": [
+-    {
+-     "data": {
+-      "text/plain": [
+-       "       name            starttime              endtime   gameid version  \\\n",
+-       "0   Player0  2008-03-22 00:07:04  2008-03-22 00:07:40  3520378   3.4.3   \n",
+-       "1   Player0  2008-03-22 00:07:43  2008-03-22 00:09:50  3520380   3.4.3   \n",
+-       "2   Player0  2008-03-22 22:12:31  2008-03-22 22:14:21  3520795   3.4.3   \n",
+-       "3   Player0  2008-03-23 11:21:37  2008-03-23 19:35:39  3521208   3.4.3   \n",
+-       "4   Player0  2008-03-23 19:36:30  2008-03-23 19:37:24  3521210   3.4.3   \n",
+-       "5   Player0  2008-03-23 19:39:08  2008-03-23 19:39:58  3521212   3.4.3   \n",
+-       "6   Player0  2009-03-03 11:13:36  2009-03-03 11:23:03  3741776   3.4.3   \n",
+-       "7   Player0  2009-03-03 11:23:06  2009-07-16 18:52:26  3827696   3.4.3   \n",
+-       "8   Player0  2009-10-17 15:49:11  2010-05-15 08:54:13  4040069   3.4.3   \n",
+-       "9   Player0  2010-12-07 15:28:43  2011-01-07 20:20:00  4361193   3.4.3   \n",
+-       "10  Player0  2011-01-07 20:49:13  2011-03-07 09:02:49  4405666   3.4.3   \n",
+-       "11  Player0  2011-10-08 18:24:25  2011-10-08 18:45:42  4716721   3.4.3   \n",
+-       "12  Player0  2011-10-08 23:30:59  2011-10-30 19:27:43  4756163   3.4.3   \n",
+-       "13  Player0  2011-11-22 17:07:46  2012-05-13 03:54:32  4943035   3.4.3   \n",
+-       "14  Player0  2012-05-18 18:51:08  2012-09-22 10:32:18  5473479   3.4.3   \n",
+-       "15  Player0  2012-09-22 10:47:17  2012-09-22 10:51:17  5473482   3.4.3   \n",
+-       "16  Player0  2012-10-18 18:03:04  2013-03-15 13:56:47  5640832   3.4.3   \n",
+-       "17  Player0  2013-03-15 14:08:25  2013-10-25 18:04:09  5880363   3.4.3   \n",
+-       "18  Player0  2014-03-03 16:09:21  2015-03-25 15:14:56  6219503   3.4.3   \n",
+-       "19  Player0  2015-12-08 10:08:36  2015-12-08 10:09:21  2237469   3.6.0   \n",
+-       "\n",
+-       "    points  deathdnum  deathlev  maxlvl  hp  ...  gender  align  \\\n",
+-       "0        0          0         1       1   0  ...     Fem    Neu   \n",
+-       "1        0          0         1       1  -1  ...     Mal    Cha   \n",
+-       "2      161          0         3       3  15  ...     Fem    Cha   \n",
+-       "3      250          2         6       6 -17  ...     Mal    Cha   \n",
+-       "4        3          7        -5       1  16  ...     Fem    Neu   \n",
+-       "5        5          7        -5       1  10  ...     Fem    Neu   \n",
+-       "6        0          0         1       1   0  ...     Fem    Neu   \n",
+-       "7       78          0         2       2   0  ...     Mal    Law   \n",
+-       "8        0          0         1       1  14  ...     Mal    Cha   \n",
+-       "9        0          0         1       1   0  ...     Mal    Law   \n",
+-       "10    9378          2         7      28  10  ...     Fem    Neu   \n",
+-       "11       0          0         1       1  15  ...     Mal    Neu   \n",
+-       "12      11          0         1       1  15  ...     Fem    Law   \n",
+-       "13    6009          0         2      23  42  ...     Fem    Neu   \n",
+-       "14    1326          0         2       2  -4  ...     Fem    Law   \n",
+-       "15      58          0         1       2   0  ...     Fem    Cha   \n",
+-       "16     550          0         1       6  25  ...     Mal    Neu   \n",
+-       "17       4          0         1       1   7  ...     Fem    Neu   \n",
+-       "18     260          0         6       6   3  ...     Mal    Cha   \n",
+-       "19     106          0         2       2   0  ...     Mal    Neu   \n",
+-       "\n",
+-       "                              death  \\\n",
+-       "0          killed by kicking a wall   \n",
+-       "1          killed by kicking a wall   \n",
+-       "2                              quit   \n",
+-       "3   killed by a priestess of Brigit   \n",
+-       "4   escaped (in celestial disgrace)   \n",
+-       "5                          ascended   \n",
+-       "6              killed by a grid bug   \n",
+-       "7              killed by a grid bug   \n",
+-       "8                              quit   \n",
+-       "9          killed by kicking a wall   \n",
+-       "10                             quit   \n",
+-       "11                             quit   \n",
+-       "12                             quit   \n",
+-       "13                             quit   \n",
+-       "14        killed by a black pudding   \n",
+-       "15             killed by a grid bug   \n",
+-       "16            killed by a death ray   \n",
+-       "17                             quit   \n",
+-       "18                             quit   \n",
+-       "19             killed by a grid bug   \n",
+-       "\n",
+-       "                                              conduct  turns  \\\n",
+-       "0   foodless,vegan,vegetarian,atheist,weaponless,p...     52   \n",
+-       "1   foodless,vegan,vegetarian,atheist,weaponless,p...     10   \n",
+-       "2   foodless,vegan,vegetarian,atheist,illiterate,p...    308   \n",
+-       "3   foodless,vegan,vegetarian,atheist,weaponless,p...      8   \n",
+-       "4   foodless,vegan,vegetarian,atheist,weaponless,p...      1   \n",
+-       "5   foodless,vegan,vegetarian,atheist,weaponless,p...      1   \n",
+-       "6   foodless,vegan,vegetarian,atheist,pacifist,ill...     50   \n",
+-       "7   foodless,vegan,vegetarian,atheist,illiterate,p...    237   \n",
+-       "8   foodless,vegan,vegetarian,atheist,weaponless,p...    392   \n",
+-       "9   foodless,vegan,vegetarian,atheist,weaponless,p...     11   \n",
+-       "10  atheist,weaponless,illiterate,polypileless,pol...    218   \n",
+-       "11  foodless,vegan,vegetarian,atheist,weaponless,p...     25   \n",
+-       "12  foodless,vegan,vegetarian,atheist,weaponless,p...     50   \n",
+-       "13  vegan,vegetarian,atheist,polypileless,polyself...   1977   \n",
+-       "14  foodless,vegan,vegetarian,atheist,polypileless...    760   \n",
+-       "15  atheist,illiterate,polypileless,polyselfless,w...     79   \n",
+-       "16  atheist,weaponless,polyselfless,artifact_wishless   1094   \n",
+-       "17  foodless,vegan,vegetarian,atheist,weaponless,i...     25   \n",
+-       "18  foodless,vegan,vegetarian,atheist,weaponless,p...     18   \n",
+-       "19  foodless,vegan,vegetarian,atheist,weaponless,p...     40   \n",
+-       "\n",
+-       "                                              achieve realtime gender0 align0  \\\n",
+-       "0                                                 NaN       30     Fem    Neu   \n",
+-       "1                                                 NaN      125     Mal    Cha   \n",
+-       "2                                                 NaN      106     Fem    Cha   \n",
+-       "3                                                 NaN      632     Mal    Cha   \n",
+-       "4    got_amulet_of_yendor,in_end_game,on_astral_plane       46     Fem    Neu   \n",
+-       "5   got_amulet_of_yendor,in_end_game,on_astral_pla...       43     Fem    Neu   \n",
+-       "6                                                 NaN       38     Fem    Neu   \n",
+-       "7                                                 NaN      133     Mal    Law   \n",
+-       "8                                                 NaN      417     Mal    Cha   \n",
+-       "9                                                 NaN       97     Mal    Law   \n",
+-       "10                                                NaN     4519     Fem    Neu   \n",
+-       "11                                                NaN     1128     Mal    Neu   \n",
+-       "12                                                NaN     1916     Fem    Law   \n",
+-       "13                                                NaN     2788     Fem    Neu   \n",
+-       "14                                                NaN     3725     Fem    Law   \n",
+-       "15                                                NaN      129     Fem    Cha   \n",
+-       "16                                                NaN     7895     Mal    Neu   \n",
+-       "17                                                NaN      620     Fem    Neu   \n",
+-       "18                                                NaN      622     Mal    Cha   \n",
+-       "19                                                NaN       59     Mal    Neu   \n",
+-       "\n",
+-       "                                                flags  \n",
+-       "0   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "1   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "2   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "3   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "4   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "5   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "6   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "7   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "8   wizard_mode,discover_mode,never_loaded_bones_file  \n",
+-       "9                                                 NaN  \n",
+-       "10                                        wizard_mode  \n",
+-       "11                                        wizard_mode  \n",
+-       "12                                        wizard_mode  \n",
+-       "13                                        wizard_mode  \n",
+-       "14                                        wizard_mode  \n",
+-       "15                                        wizard_mode  \n",
+-       "16                                        wizard_mode  \n",
+-       "17                                        wizard_mode  \n",
+-       "18                          wizard_mode,discover_mode  \n",
+-       "19                            never_loaded_bones_file  \n",
+-       "\n",
+-       "[20 rows x 27 columns]"
+-      ],
+-      "text/html": [
+-       "<div>\n",
+-       "<style scoped>\n",
+-       "    .dataframe tbody tr th:only-of-type {\n",
+-       "        vertical-align: middle;\n",
+-       "    }\n",
+-       "\n",
+-       "    .dataframe tbody tr th {\n",
+-       "        vertical-align: top;\n",
+-       "    }\n",
+-       "\n",
+-       "    .dataframe thead th {\n",
+-       "        text-align: right;\n",
+-       "    }\n",
+-       "</style>\n",
+-       "<table border=\"1\" class=\"dataframe\">\n",
+-       "  <thead>\n",
+-       "    <tr style=\"text-align: right;\">\n",
+-       "      <th></th>\n",
+-       "      <th>name</th>\n",
+-       "      <th>starttime</th>\n",
+-       "      <th>endtime</th>\n",
+-       "      <th>gameid</th>\n",
+-       "      <th>version</th>\n",
+-       "      <th>points</th>\n",
+-       "      <th>deathdnum</th>\n",
+-       "      <th>deathlev</th>\n",
+-       "      <th>maxlvl</th>\n",
+-       "      <th>hp</th>\n",
+-       "      <th>...</th>\n",
+-       "      <th>gender</th>\n",
+-       "      <th>align</th>\n",
+-       "      <th>death</th>\n",
+-       "      <th>conduct</th>\n",
+-       "      <th>turns</th>\n",
+-       "      <th>achieve</th>\n",
+-       "      <th>realtime</th>\n",
+-       "      <th>gender0</th>\n",
+-       "      <th>align0</th>\n",
+-       "      <th>flags</th>\n",
+-       "    </tr>\n",
+-       "  </thead>\n",
+-       "  <tbody>\n",
+-       "    <tr>\n",
+-       "      <th>0</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2008-03-22 00:07:04</td>\n",
+-       "      <td>2008-03-22 00:07:40</td>\n",
+-       "      <td>3520378</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>killed by kicking a wall</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>52</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>30</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>1</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2008-03-22 00:07:43</td>\n",
+-       "      <td>2008-03-22 00:09:50</td>\n",
+-       "      <td>3520380</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>-1</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>killed by kicking a wall</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>10</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>125</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>2</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2008-03-22 22:12:31</td>\n",
+-       "      <td>2008-03-22 22:14:21</td>\n",
+-       "      <td>3520795</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>161</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>3</td>\n",
+-       "      <td>3</td>\n",
+-       "      <td>15</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,illiterate,p...</td>\n",
+-       "      <td>308</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>106</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>3</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2008-03-23 11:21:37</td>\n",
+-       "      <td>2008-03-23 19:35:39</td>\n",
+-       "      <td>3521208</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>250</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>6</td>\n",
+-       "      <td>6</td>\n",
+-       "      <td>-17</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>killed by a priestess of Brigit</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>8</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>632</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>4</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2008-03-23 19:36:30</td>\n",
+-       "      <td>2008-03-23 19:37:24</td>\n",
+-       "      <td>3521210</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>3</td>\n",
+-       "      <td>7</td>\n",
+-       "      <td>-5</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>16</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>escaped (in celestial disgrace)</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>got_amulet_of_yendor,in_end_game,on_astral_plane</td>\n",
+-       "      <td>46</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>5</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2008-03-23 19:39:08</td>\n",
+-       "      <td>2008-03-23 19:39:58</td>\n",
+-       "      <td>3521212</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>5</td>\n",
+-       "      <td>7</td>\n",
+-       "      <td>-5</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>10</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>ascended</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>got_amulet_of_yendor,in_end_game,on_astral_pla...</td>\n",
+-       "      <td>43</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>6</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2009-03-03 11:13:36</td>\n",
+-       "      <td>2009-03-03 11:23:03</td>\n",
+-       "      <td>3741776</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>killed by a grid bug</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,pacifist,ill...</td>\n",
+-       "      <td>50</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>38</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>7</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2009-03-03 11:23:06</td>\n",
+-       "      <td>2009-07-16 18:52:26</td>\n",
+-       "      <td>3827696</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>78</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>killed by a grid bug</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,illiterate,p...</td>\n",
+-       "      <td>237</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>133</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>8</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2009-10-17 15:49:11</td>\n",
+-       "      <td>2010-05-15 08:54:13</td>\n",
+-       "      <td>4040069</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>14</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>392</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>417</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>wizard_mode,discover_mode,never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>9</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2010-12-07 15:28:43</td>\n",
+-       "      <td>2011-01-07 20:20:00</td>\n",
+-       "      <td>4361193</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>killed by kicking a wall</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>11</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>97</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>NaN</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>10</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2011-01-07 20:49:13</td>\n",
+-       "      <td>2011-03-07 09:02:49</td>\n",
+-       "      <td>4405666</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>9378</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>7</td>\n",
+-       "      <td>28</td>\n",
+-       "      <td>10</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>atheist,weaponless,illiterate,polypileless,pol...</td>\n",
+-       "      <td>218</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>4519</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>11</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2011-10-08 18:24:25</td>\n",
+-       "      <td>2011-10-08 18:45:42</td>\n",
+-       "      <td>4716721</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>15</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>25</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>1128</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>12</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2011-10-08 23:30:59</td>\n",
+-       "      <td>2011-10-30 19:27:43</td>\n",
+-       "      <td>4756163</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>11</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>15</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>50</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>1916</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>13</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2011-11-22 17:07:46</td>\n",
+-       "      <td>2012-05-13 03:54:32</td>\n",
+-       "      <td>4943035</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>6009</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>23</td>\n",
+-       "      <td>42</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>vegan,vegetarian,atheist,polypileless,polyself...</td>\n",
+-       "      <td>1977</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>2788</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>14</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2012-05-18 18:51:08</td>\n",
+-       "      <td>2012-09-22 10:32:18</td>\n",
+-       "      <td>5473479</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>1326</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>-4</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>killed by a black pudding</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,polypileless...</td>\n",
+-       "      <td>760</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>3725</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Law</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>15</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2012-09-22 10:47:17</td>\n",
+-       "      <td>2012-09-22 10:51:17</td>\n",
+-       "      <td>5473482</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>58</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>killed by a grid bug</td>\n",
+-       "      <td>atheist,illiterate,polypileless,polyselfless,w...</td>\n",
+-       "      <td>79</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>129</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>16</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2012-10-18 18:03:04</td>\n",
+-       "      <td>2013-03-15 13:56:47</td>\n",
+-       "      <td>5640832</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>550</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>6</td>\n",
+-       "      <td>25</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>killed by a death ray</td>\n",
+-       "      <td>atheist,weaponless,polyselfless,artifact_wishless</td>\n",
+-       "      <td>1094</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>7895</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>17</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2013-03-15 14:08:25</td>\n",
+-       "      <td>2013-10-25 18:04:09</td>\n",
+-       "      <td>5880363</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>4</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>1</td>\n",
+-       "      <td>7</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,i...</td>\n",
+-       "      <td>25</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>620</td>\n",
+-       "      <td>Fem</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>wizard_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>18</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2014-03-03 16:09:21</td>\n",
+-       "      <td>2015-03-25 15:14:56</td>\n",
+-       "      <td>6219503</td>\n",
+-       "      <td>3.4.3</td>\n",
+-       "      <td>260</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>6</td>\n",
+-       "      <td>6</td>\n",
+-       "      <td>3</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>quit</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>18</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>622</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Cha</td>\n",
+-       "      <td>wizard_mode,discover_mode</td>\n",
+-       "    </tr>\n",
+-       "    <tr>\n",
+-       "      <th>19</th>\n",
+-       "      <td>Player0</td>\n",
+-       "      <td>2015-12-08 10:08:36</td>\n",
+-       "      <td>2015-12-08 10:09:21</td>\n",
+-       "      <td>2237469</td>\n",
+-       "      <td>3.6.0</td>\n",
+-       "      <td>106</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>2</td>\n",
+-       "      <td>0</td>\n",
+-       "      <td>...</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>killed by a grid bug</td>\n",
+-       "      <td>foodless,vegan,vegetarian,atheist,weaponless,p...</td>\n",
+-       "      <td>40</td>\n",
+-       "      <td>NaN</td>\n",
+-       "      <td>59</td>\n",
+-       "      <td>Mal</td>\n",
+-       "      <td>Neu</td>\n",
+-       "      <td>never_loaded_bones_file</td>\n",
+-       "    </tr>\n",
+-       "  </tbody>\n",
+-       "</table>\n",
+-       "<p>20 rows × 27 columns</p>\n",
+-       "</div>"
+-      ]
+-     },
+-     "execution_count": 2,
+-     "metadata": {},
+-     "output_type": "execute_result"
+-    }
+-   ],
+-   "execution_count": 2
++   "outputs": [],
++   "execution_count": null
+   },
+   {
+    "metadata": {
+diff --git a/src/features/expert_extraction.py b/os
+similarity index 100%
+rename from src/features/expert_extraction.py
+rename to os
+diff --git a/src/data/expert_processing.py b/src/data/expert_processing.py
+new file mode 100644
+index 0000000..e69de29
+diff --git a/src/models/behavioral-cloning.py b/src/models/behavioral-cloning.py
+new file mode 100644
+index 0000000..f722d98
+--- /dev/null
++++ b/src/models/behavioral-cloning.py
+@@ -0,0 +1,405 @@
++import pyrallis
++from dataclasses import dataclass, asdict
++import random
++import wandb
++import os
++import uuid
++import torch
++import torch.nn as nn
++
++from gym.vector import AsyncVectorEnv
++from concurrent.futures import ThreadPoolExecutor
++import torch.nn.functional as F
++from tqdm.auto import tqdm, trange
++from torch.distributions import Categorical
++import numpy as np
++
++from multiprocessing import set_start_method
++from katakomba.env import NetHackChallenge, OfflineNetHackChallengeWrapper
++from katakomba.nn.chaotic_dwarf import TopLineEncoder, BottomLinesEncoder, ScreenEncoder
++from katakomba.utils.render import SCREEN_SHAPE, render_screen_image
++from katakomba.utils.datasets import SequentialBuffer
++from katakomba.utils.misc import Timeit
++from typing import Optional, Tuple, List, Dict
++
++torch.backends.cudnn.benchmark = True
++DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
++
++
++@dataclass
++class TrainConfig:
++    character: str = "mon-hum-neu"
++    data_mode: str = "compressed"
++    # Wandb logging
++    project: str = "NetHack"
++    group: str = "small_scale_bc"
++    name: str = "bc"
++    version: int = 0
++    # Model
++    rnn_hidden_dim: int = 2048
++    rnn_layers: int = 2
++    use_prev_action: bool = True
++    rnn_dropout: float = 0.0
++    # Training
++    update_steps: int = 500_000
++    batch_size: int = 64
++    seq_len: int = 16
++    learning_rate: float = 3e-4
++    weight_decay: float = 0.0
++    clip_grad_norm: Optional[float] = None
++    checkpoints_path: Optional[str] = None
++    eval_every: int = 10_000
++    eval_episodes: int = 50
++    eval_processes: int = 14
++    render_processes: int = 14
++    eval_seed: int = 50
++    train_seed: int = 42
++
++    def __post_init__(self):
++        self.group = f"{self.group}-v{str(self.version)}"
++        self.name = f"{self.name}-{self.character}-{str(uuid.uuid4())[:8]}"
++        if self.checkpoints_path is not None:
++            self.checkpoints_path = os.path.join(self.checkpoints_path, self.group, self.name)
++
++
++def set_seed(seed: int):
++    os.environ["PYTHONHASHSEED"] = str(seed)
++    np.random.seed(seed)
++    random.seed(seed)
++    torch.manual_seed(seed)
++
++
++@torch.no_grad()
++def filter_wd_params(model: nn.Module) -> Tuple[List[nn.parameter.Parameter], List[nn.parameter.Parameter]]:
++    no_decay, decay = [], []
++    for name, param in model.named_parameters():
++        if hasattr(param, 'requires_grad') and not param.requires_grad:
++            continue
++        if 'weight' in name and 'norm' not in name and 'bn' not in name:
++            decay.append(param)
++        else:
++            no_decay.append(param)
++    assert len(no_decay) + len(decay) == len(list(model.parameters()))
++    return no_decay, decay
++
++
++def dict_to_tensor(data: Dict[str, np.ndarray], device: str) -> Dict[str, torch.Tensor]:
++    return {k: torch.as_tensor(v, device=device) for k, v in data.items()}
++
++
++class Actor(nn.Module):
++    def __init__(
++            self,
++            action_dim: int,
++            rnn_hidden_dim: int = 512,
++            rnn_layers: int = 1,
++            rnn_dropout: float = 0.0,
++            use_prev_action: bool = True
++    ):
++        super().__init__()
++        # Action dimensions and prev actions
++        self.num_actions = action_dim
++        self.use_prev_action = use_prev_action
++        self.prev_actions_dim = self.num_actions if self.use_prev_action else 0
++
++        # Encoders
++        self.topline_encoder = TopLineEncoder()
++        self.bottomline_encoder = torch.jit.script(BottomLinesEncoder())
++
++        screen_shape = (SCREEN_SHAPE[1], SCREEN_SHAPE[2])
++        self.screen_encoder = torch.jit.script(ScreenEncoder(screen_shape))
++
++        self.h_dim = sum(
++            [
++                self.topline_encoder.hidden_dim,
++                self.bottomline_encoder.hidden_dim,
++                self.screen_encoder.hidden_dim,
++                self.prev_actions_dim,
++            ]
++        )
++        # Policy
++        self.rnn = nn.LSTM(
++            self.h_dim,
++            rnn_hidden_dim,
++            num_layers=rnn_layers,
++            dropout=rnn_dropout,
++            batch_first=True
++        )
++        self.head = nn.Linear(rnn_hidden_dim, self.num_actions)
++
++    def forward(self, inputs, state=None):
++        B, T, C, H, W = inputs["screen_image"].shape
++        topline = inputs["tty_chars"][..., 0, :]
++        bottom_line = inputs["tty_chars"][..., -2:, :]
++
++        encoded_state = [
++            self.topline_encoder(
++                topline.float(memory_format=torch.contiguous_format).view(T * B, -1)
++            ),
++            self.bottomline_encoder(
++                bottom_line.float(memory_format=torch.contiguous_format).view(T * B, -1)
++            ),
++            self.screen_encoder(
++                inputs["screen_image"]
++                .float(memory_format=torch.contiguous_format)
++                .view(T * B, C, H, W)
++            ),
++        ]
++        if self.use_prev_action:
++            encoded_state.append(
++                F.one_hot(inputs["prev_actions"], self.num_actions).view(T * B, -1)
++            )
++
++        encoded_state = torch.cat(encoded_state, dim=1)
++        core_output, new_state = self.rnn(encoded_state.view(B, T, -1), state)
++        logits = self.head(core_output)
++
++        return logits, new_state
++
++    @torch.no_grad()
++    def vec_act(self, obs, state=None, device="cpu"):
++        inputs = {
++            "tty_chars": torch.tensor(obs["tty_chars"][:, None], device=device),
++            "screen_image": torch.tensor(obs["screen_image"][:, None], device=device),
++            "prev_actions": torch.tensor(obs["prev_actions"][:, None], dtype=torch.long, device=device)
++        }
++        logits, new_state = self(inputs, state)
++        actions = torch.argmax(logits.squeeze(1), dim=-1)
++        return actions.cpu().numpy(), new_state
++
++
++@torch.no_grad()
++def vec_evaluate(
++        vec_env: AsyncVectorEnv,
++        actor: Actor,
++        num_episodes: int,
++        seed: str = 0,
++        device: str = "cpu"
++) -> Dict[str, np.ndarray]:
++    actor.eval()
++    # set seed for reproducibility (reseed=False by default)
++    vec_env.seed(seed)
++    # all this work is needed to mitigate bias for shorter
++    # episodes during vectorized evaluation, for more see:
++    # https://github.com/DLR-RM/stable-baselines3/issues/402
++    n_envs = vec_env.num_envs
++    episode_rewards = []
++    episode_lengths = []
++    episode_depths = []
++
++    episode_counts = np.zeros(n_envs, dtype="int")
++    # Divides episodes among different sub environments in the vector as evenly as possible
++    episode_count_targets = np.array([(num_episodes + i) // n_envs for i in range(n_envs)], dtype="int")
++
++    current_rewards = np.zeros(n_envs)
++    current_lengths = np.zeros(n_envs, dtype="int")
++    observations = vec_env.reset()
++    observations["prev_actions"] = np.zeros(n_envs, dtype=float)
++
++    rnn_states = None
++    pbar = tqdm(total=num_episodes)
++    while (episode_counts < episode_count_targets).any():
++        # faster to do this here for entire batch, than in wrappers for each env
++        observations["screen_image"] = render_screen_image(
++            tty_chars=observations["tty_chars"][:, np.newaxis, ...],
++            tty_colors=observations["tty_colors"][:, np.newaxis, ...],
++            tty_cursor=observations["tty_cursor"][:, np.newaxis, ...],
++        )
++        observations["screen_image"] = np.squeeze(observations["screen_image"], 1)
++
++        actions, rnn_states = actor.vec_act(observations, rnn_states, device=device)
++
++        observations, rewards, dones, infos = vec_env.step(actions)
++        observations["prev_actions"] = actions
++
++        current_rewards += rewards
++        current_lengths += 1
++
++        for i in range(n_envs):
++            if episode_counts[i] < episode_count_targets[i]:
++                if dones[i]:
++                    episode_rewards.append(current_rewards[i])
++                    episode_lengths.append(current_lengths[i])
++                    episode_depths.append(infos[i]["current_depth"])
++                    episode_counts[i] += 1
++                    pbar.update(1)
++
++                    current_rewards[i] = 0
++                    current_lengths[i] = 0
++
++    pbar.close()
++    result = {
++        "reward_median": np.median(episode_rewards),
++        "reward_mean": np.mean(episode_rewards),
++        "reward_std": np.std(episode_rewards),
++        "reward_min": np.min(episode_rewards),
++        "reward_max": np.max(episode_rewards),
++        "reward_raw": np.array(episode_rewards),
++        # depth
++        "depth_median": np.median(episode_depths),
++        "depth_mean": np.mean(episode_depths),
++        "depth_std": np.std(episode_depths),
++        "depth_min": np.min(episode_depths),
++        "depth_max": np.max(episode_depths),
++        "depth_raw": np.array(episode_depths),
++    }
++    actor.train()
++    return result
++
++
++@pyrallis.wrap()
++def train(config: TrainConfig):
++    print(f"Device: {DEVICE}")
++    wandb.init(
++        config=asdict(config),
++        project=config.project,
++        group=config.group,
++        name=config.name,
++        id=str(uuid.uuid4()),
++        save_code=True,
++    )
++    if config.checkpoints_path is not None:
++        print(f"Checkpoints path: {config.checkpoints_path}")
++        os.makedirs(config.checkpoints_path, exist_ok=True)
++        with open(os.path.join(config.checkpoints_path, "config.yaml"), "w") as f:
++            pyrallis.dump(config, f)
++
++    set_seed(config.train_seed)
++
++    def env_fn():
++        env = NetHackChallenge(
++            character=config.character,
++            observation_keys=["tty_chars", "tty_colors", "tty_cursor"]
++        )
++        env = OfflineNetHackChallengeWrapper(env)
++        return env
++
++    tmp_env = env_fn()
++    eval_env = AsyncVectorEnv(
++        env_fns=[env_fn for _ in range(config.eval_processes)],
++        copy=False
++    )
++    buffer = SequentialBuffer(
++        dataset=tmp_env.get_dataset(mode=config.data_mode, scale="small"),
++        seq_len=config.seq_len,
++        batch_size=config.batch_size,
++        seed=config.train_seed,
++        add_next_step=False
++    )
++    tp = ThreadPoolExecutor(max_workers=config.render_processes)
++
++    actor = Actor(
++        action_dim=eval_env.single_action_space.n,
++        use_prev_action=config.use_prev_action,
++        rnn_hidden_dim=config.rnn_hidden_dim,
++        rnn_layers=config.rnn_layers,
++        rnn_dropout=config.rnn_dropout,
++    ).to(DEVICE)
++
++    no_decay_params, decay_params = filter_wd_params(actor)
++    optim = torch.optim.AdamW([
++        {"params": no_decay_params, "weight_decay": 0.0},
++        {"params": decay_params, "weight_decay": config.weight_decay}
++    ], lr=config.learning_rate)
++    print("Number of parameters:", sum(p.numel() for p in actor.parameters()))
++
++    scaler = torch.cuda.amp.GradScaler()
++
++    rnn_state = None
++    prev_actions = torch.zeros((config.batch_size, 1), dtype=torch.long, device=DEVICE)
++    for step in trange(1, config.update_steps + 1, desc="Training"):
++        with Timeit() as timer:
++            batch = buffer.sample()
++            screen_image = render_screen_image(
++                tty_chars=batch["tty_chars"],
++                tty_colors=batch["tty_colors"],
++                tty_cursor=batch["tty_cursor"],
++                threadpool=tp,
++            )
++            batch["screen_image"] = screen_image
++            batch = dict_to_tensor(batch, device=DEVICE)
++
++        wandb.log(
++            {
++                "times/batch_loading_cpu": timer.elapsed_time_cpu,
++                "times/batch_loading_gpu": timer.elapsed_time_gpu,
++            },
++            step=step,
++        )
++
++        with Timeit() as timer:
++            with torch.cuda.amp.autocast():
++                logits, rnn_state = actor(
++                    inputs={
++                        "screen_image": batch["screen_image"],
++                        "tty_chars": batch["tty_chars"],
++                        "prev_actions": torch.cat(
++                            [prev_actions.long(), batch["actions"][:, :-1].long()], dim=1
++                        )
++                    },
++                    state=rnn_state,
++                )
++                rnn_state = [a.detach() for a in rnn_state]
++
++                dist = Categorical(logits=logits)
++                loss = -dist.log_prob(batch["actions"]).mean()
++                # update prev_actions for next iteration
++                prev_actions = batch["actions"][:, -1].unsqueeze(-1)
++
++        wandb.log({"times/forward_pass": timer.elapsed_time_gpu}, step=step)
++
++        with Timeit() as timer:
++            scaler.scale(loss).backward()
++            # loss.backward()
++            if config.clip_grad_norm is not None:
++                scaler.unscale_(optim)
++                torch.nn.utils.clip_grad_norm_(actor.parameters(), config.clip_grad_norm)
++            # optim.step()
++            scaler.step(optim)
++            scaler.update()
++            optim.zero_grad(set_to_none=True)
++
++        wandb.log({"times/backward_pass": timer.elapsed_time_gpu}, step=step)
++
++        wandb.log({
++                "loss": loss.detach().item(),
++                "transitions": config.batch_size * config.seq_len * step,
++        }, step=step)
++
++        if step % config.eval_every == 0:
++            with Timeit() as timer:
++                eval_stats = vec_evaluate(
++                    eval_env, actor, config.eval_episodes, config.eval_seed, device=DEVICE
++                )
++            raw_returns = eval_stats.pop("reward_raw")
++            raw_depths = eval_stats.pop("depth_raw")
++            normalized_scores = tmp_env.get_normalized_score(raw_returns)
++
++            wandb.log({
++                "times/evaluation_gpu": timer.elapsed_time_gpu,
++                "times/evaluation_cpu": timer.elapsed_time_cpu,
++            }, step=step)
++
++            wandb.log(dict(
++                eval_stats,
++                **{"transitions": config.batch_size * config.seq_len * step},
++            ), step=step)
++
++            if config.checkpoints_path is not None:
++                torch.save(actor.state_dict(), os.path.join(config.checkpoints_path, f"{step}.pt"))
++                # saving raw logs
++                np.save(os.path.join(config.checkpoints_path, f"{step}_returns.npy"), raw_returns)
++                np.save(os.path.join(config.checkpoints_path, f"{step}_depths.npy"), raw_depths)
++                np.save(os.path.join(config.checkpoints_path, f"{step}_normalized_scores.npy"), normalized_scores)
++
++            # also saving to wandb files for easier use in the future
++            np.save(os.path.join(wandb.run.dir, f"{step}_returns.npy"), raw_returns)
++            np.save(os.path.join(wandb.run.dir, f"{step}_depths.npy"), raw_depths)
++            np.save(os.path.join(wandb.run.dir, f"{step}_normalized_scores.npy"), normalized_scores)
++
++    buffer.close()
++
++
++if __name__ == "__main__":
++    set_start_method("spawn")
++    train()
+\ No newline at end of file

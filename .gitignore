@@ -82,6 +82,9 @@ target/
 # exclude data from source control by default
 /data/
 
+# exclude katakomba from source control
+/katakomba/
+
 # Mac OS-specific storage files
 .DS_Store
 

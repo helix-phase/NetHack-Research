@@ -1,0 +1,96 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.12.21
+    code_path: code/src/models/behavioral-cloning.py
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.10.12
+    start_time: 1737051581
+    t:
+      1:
+      - 1
+      - 55
+      3:
+      - 13
+      - 14
+      - 16
+      4: 3.10.12
+      5: 0.12.21
+      8:
+      - 5
+batch_size:
+  desc: null
+  value: 128
+character:
+  desc: null
+  value: mon-hum-neu
+checkpoints_path:
+  desc: null
+  value: null
+clip_grad_norm:
+  desc: null
+  value: null
+data_mode:
+  desc: null
+  value: compressed
+eval_episodes:
+  desc: null
+  value: 25
+eval_every:
+  desc: null
+  value: 25000
+eval_processes:
+  desc: null
+  value: 8
+eval_seed:
+  desc: null
+  value: 50
+group:
+  desc: null
+  value: small_scale_bc-v0
+learning_rate:
+  desc: null
+  value: 0.0003
+name:
+  desc: null
+  value: bc-mon-hum-neu-07905a2f
+project:
+  desc: null
+  value: NetHack
+render_processes:
+  desc: null
+  value: 8
+rnn_dropout:
+  desc: null
+  value: 0.0
+rnn_hidden_dim:
+  desc: null
+  value: 1024
+rnn_layers:
+  desc: null
+  value: 1
+seq_len:
+  desc: null
+  value: 8
+size:
+  desc: null
+  value: small
+train_seed:
+  desc: null
+  value: 42
+update_steps:
+  desc: null
+  value: 100000
+use_prev_action:
+  desc: null
+  value: true
+version:
+  desc: null
+  value: 0
+weight_decay:
+  desc: null
+  value: 0.0
