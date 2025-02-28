@@ -1,0 +1,24 @@
+{
+    "os": "Linux-6.9.3-76060903-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2025-02-28T02:12:31.687961",
+    "startedAt": "2025-02-28T02:12:30.227429",
+    "docker": null,
+    "gpu": "Quadro P2000",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "/code/NetHack-Research/src/models/behavioral-cloning.py",
+    "codePath": "src/models/behavioral-cloning.py",
+    "git": {
+        "remote": "git@github.com:helix-phase/NetHack-Research.git",
+        "commit": "405b81f06b459481a805a4b2babd2b450594b937"
+    },
+    "email": "oldsorama@gmail.com",
+    "root": "/code/NetHack-Research",
+    "host": "pop-os",
+    "username": "danielolds",
+    "executable": "/code/NetHack-Research/.venv/bin/python"
+}

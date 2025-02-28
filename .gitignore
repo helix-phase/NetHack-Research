@@ -85,6 +85,9 @@ target/
 # exclude katakomba from source control
 /katakomba/
 
+# exclude wandb folder from source control
+/reports/wandb/
+
 # Mac OS-specific storage files
 .DS_Store
 

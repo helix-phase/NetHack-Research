@@ -10,7 +10,6 @@ import pandas as pd
 import nle.dataset as nld
 from nle.dataset import db
 
-
 """
 Builds the NLD-NAO database from unzipped game data files and saves it to location.
 
