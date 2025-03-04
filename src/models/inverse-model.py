@@ -29,7 +29,7 @@ from nle import nethack
 from torch import nn
 from torch.nn import functional as F
 
-from test_katakomba.nn.chaotic_dwarf import ScreenEncoder
+from katakomba_copy.nn.chaotic_dwarf import ScreenEncoder
 
 
 class TopLineEncoder(nn.Module):

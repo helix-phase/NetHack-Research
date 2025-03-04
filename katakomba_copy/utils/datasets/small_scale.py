@@ -62,11 +62,13 @@ def load_nld_aa_small_dataset(
             "Please see all allowed combos in the katakomba/utils/roles.py"
         )
     dataset_name = f"data-{role.value}-{race.value}-{align.value}-any.hdf5"
+
     if not os.path.exists(os.path.join(DATA_PATH, dataset_name)):
+        print("Path does not exist...")
         download_dataset(
             repo_id=BASE_REPO_ID,
             subfolder="data",
-            filename=dataset_name,
+            filename=dataset_name
         )
 
     dataset_path = os.path.join(DATA_PATH, dataset_name)
