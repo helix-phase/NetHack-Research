@@ -5,7 +5,7 @@ AI research for the INVITE Institute
 
 Project Description
 ------------
-Persistence as a behavior prior to inform behavioral cloning from observation
+Behavioral modeling task. The behavior of persistence is modeled as a behavior prior to train a bco algorithm and evaluated in terms of bco performance. 
 
 
 --------
