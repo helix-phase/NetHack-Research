@@ -1,0 +1,28 @@
+{
+    "os": "Linux-6.9.3-76060903-generic-x86_64-with-glibc2.35",
+    "python": "3.10.12",
+    "heartbeatAt": "2025-03-11T12:23:59.892522",
+    "startedAt": "2025-03-11T12:23:58.903978",
+    "docker": null,
+    "gpu": "Quadro P2000",
+    "gpu_count": 1,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [
+        "--character",
+        "ran-orc-cha",
+        "--train_inverse"
+    ],
+    "state": "running",
+    "program": "/code/NetHack-Research/main.py",
+    "codePath": "main.py",
+    "git": {
+        "remote": "git@github.com:helix-phase/NetHack-Research.git",
+        "commit": "36d79ca257c55c3a871c5749457103f1def809dc"
+    },
+    "email": "oldsorama@gmail.com",
+    "root": "/code/NetHack-Research",
+    "host": "pop-os",
+    "username": "danielolds",
+    "executable": "/code/NetHack-Research/.venv/bin/python"
+}

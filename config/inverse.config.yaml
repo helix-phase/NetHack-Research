@@ -1,0 +1,5 @@
+character: arc-hum-neu
+use_inverse_model: true
+train_inverse_model: true
+inverse_model_weight: 1.0
+data_path: /code/NetHack-Research/data/processed/hdf5_data/

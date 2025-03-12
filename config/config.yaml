@@ -1,0 +1,31 @@
+character: arc-hum-neu
+data_mode: compressed
+data_path: /code/NetHack-Research/data/processed/hdf5_data/
+project: NetHack
+group: inverse_bc
+name: inverse_bc
+version: 0
+
+# Model
+rnn_hidden_dim: 1024
+rnn_layers: 1
+use_prev_action: true
+rnn_dropout: 0.0
+
+# Inverse Model
+use_inverse_model: true
+train_inverse_model: true  # Enable inverse model training
+inverse_model_weight: 1.0
+use_difference_vector: false
+
+# Training
+update_steps: 25000
+batch_size: 256
+seq_len: 8
+learning_rate: 3e-4
+weight_decay: 0.0
+eval_every: 5000
+eval_episodes: 25
+eval_processes: 8
+render_processes: 8
+checkpoints_path: ./checkpoints
