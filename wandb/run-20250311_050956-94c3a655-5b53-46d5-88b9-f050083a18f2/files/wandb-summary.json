@@ -1,1 +1,0 @@
-{"times/batch_loading_cpu": 6.675009250640869, "times/batch_loading_gpu": 6.6750126953125, "_timestamp": 1741695643, "_runtime": 647, "times/forward_pass": 0.14940127563476563, "times/backward_pass": 0.19101878356933594, "loss/policy": -0.0, "transitions": 215040, "loss/inverse": 9.313225191043273e-10, "loss/total": 9.313225191043273e-10, "_step": 105}
